@@ -2,7 +2,9 @@
 html,body{margin:0;padding:0;background:#0b1220;color:#e6edf7;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif}
 body{min-height:100vh;overscroll-behavior-y:contain}
-#app{padding:14px 12px calc(78px + env(safe-area-inset-bottom));max-width:520px;margin:0 auto}
+/* 顶部留白：装到主屏幕(standalone)后状态栏会压在网页上，viewport-fit=cover 下单靠 env() 不可靠，
+   所以给 34px 保底 + 刘海机再叠加 safe-area-inset-top */
+#app{padding:calc(34px + env(safe-area-inset-top, 0px)) calc(12px + env(safe-area-inset-right, 0px)) calc(78px + env(safe-area-inset-bottom, 0px)) calc(12px + env(safe-area-inset-left, 0px));max-width:520px;margin:0 auto}
 .card{background:#131c2e;border:1px solid #1e2b45;border-radius:16px;padding:14px;margin-bottom:12px}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .muted{color:#7c8aa5;font-size:12px}
