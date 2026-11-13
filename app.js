@@ -446,6 +446,17 @@ window.addEventListener('error', function(ev){
   ));
 });
 
+// ---------- 离线支持 ----------
+// 局域网 http 下浏览器不允许注册 Service Worker；托管到 https 后自动生效，
+// 装到主屏幕就能断网打开。
+if ('serviceWorker' in navigator) {
+  const sec = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if (sec) {
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').catch(function(){});
+    });
+  }
+}
 render();
 
 // ---------- 冷静期 ----------
