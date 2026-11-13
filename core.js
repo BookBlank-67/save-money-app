@@ -168,26 +168,40 @@ function csvCell(v){
 function csvRows(rows){
   return '\ufeff' + rows.map(function(r){ return r.map(csvCell).join(','); }).join('\r\n');
 }
-export function entriesCSV(ymStr){
+// CSV 文案：默认中文（tests.mjs 断言依赖它）；i18n.js 的 csvLabels() 可传入英文
+const ZH_CSV = {
+  date: '日期', amount: '金额', place: '花在哪', note: '备注', verdict: '值不值',
+  over: '是否超支', kind: '类型', good: '值', bad: '后悔', overWord: '超支',
+  entry: '记账', fixed: '固定', fixedPlace: '固定支出', fixedNote: '自动预提', noPlace: '未填',
+  item: '项目', value: '数值', month: '月份', available: '本月可用', target: '目标存下',
+  spendable: '本月可花', expected: '到期应花', spent: '已花合计', fixedOf: '其中固定支出',
+  freeOf: '其中自由支出', drift: '进度偏差', projected: '预计结余', dailyBase: '日均基准',
+  entryCount: '记账笔数', regret: '后悔金额', regretPct: '后悔占比', goodSum: '觉得值金额',
+  byPlace: '花在哪', total: '合计'
+};
+
+export function entriesCSV(ymStr, labels){
+  const L = labels || ZH_CSV;
   const s = st();
-  const rows = [['日期','金额','花在哪','备注','值不值','是否超支','类型']];
+  const rows = [[L.date, L.amount, L.place, L.note, L.verdict, L.over, L.kind]];
   s.entries.filter(function(x){ return x.date.indexOf(ymStr + '-') === 0; })
     .sort(function(a, b){ return a.date < b.date ? -1 : 1; })
     .forEach(function(x){
       const c = calc(ymStr);
       const day = c.days[Number(x.date.slice(8, 10)) - 1];
       rows.push([x.date, x.amount.toFixed(2), x.place, x.note,
-                 x.verdict === 'good' ? '值' : (x.verdict === 'bad' ? '后悔' : ''),
-                 day && day.over ? '超支' : '', '记账']);
+                 x.verdict === 'good' ? L.good : (x.verdict === 'bad' ? L.bad : ''),
+                 day && day.over ? L.overWord : '', L.entry]);
     });
   const c2 = calc(ymStr);
   c2.days.forEach(function(day){
     const fixed = day.fixed;
-    if (fixed > 0) rows.push([day.ds, fixed.toFixed(2), '固定支出', '自动预提', '', day.over ? '超支' : '', '固定']);
+    if (fixed > 0) rows.push([day.ds, fixed.toFixed(2), L.fixedPlace, L.fixedNote, '', day.over ? L.overWord : '', L.fixed]);
   });
   return csvRows(rows);
 }
-export function summaryCSV(ymStr){
+export function summaryCSV(ymStr, labels){
+  const L = labels || ZH_CSV;
   const c = calc(ymStr);
   const s = st();
   const monthEntries = s.entries.filter(function(x){ return x.date.indexOf(ymStr + '-') === 0; });
@@ -199,30 +213,30 @@ export function summaryCSV(ymStr){
 
   const byPlace = {};
   monthEntries.forEach(function(x){
-    const k = x.place || '未填';
+    const k = x.place || L.noPlace;
     byPlace[k] = (byPlace[k] || 0) + x.amount;
   });
   const places = Object.keys(byPlace).sort(function(a, b){ return byPlace[b] - byPlace[a]; });
 
   const rows = [
-    ['项目','数值'],
-    ['月份', ymStr],
-    ['本月可用', c.M.toFixed(2)],
-    ['目标存下', c.T.toFixed(2)],
-    ['本月可花', c.C.toFixed(2)],
-    ['到期应花', c.EA.toFixed(2)],
-    ['已花合计', c.S.toFixed(2)],
-    ['其中固定支出', fixedSum.toFixed(2)],
-    ['其中自由支出', (c.S - fixedSum).toFixed(2)],
-    ['进度偏差', c.delta.toFixed(2)],
-    ['预计结余', c.P.toFixed(2)],
-    ['日均基准', c.dailyBase.toFixed(2)],
-    ['记账笔数', monthEntries.length],
-    ['后悔金额', regret.toFixed(2)],
-    ['后悔占比', monthEntries.length ? (regret / Math.max(1, monthEntries.reduce(function(a,x){return a+x.amount;},0)) * 100).toFixed(1) + '%' : '0%'],
-    ['觉得值金额', good.toFixed(2)],
+    [L.item, L.value],
+    [L.month, ymStr],
+    [L.available, c.M.toFixed(2)],
+    [L.target, c.T.toFixed(2)],
+    [L.spendable, c.C.toFixed(2)],
+    [L.expected, c.EA.toFixed(2)],
+    [L.spent, c.S.toFixed(2)],
+    [L.fixedOf, fixedSum.toFixed(2)],
+    [L.freeOf, (c.S - fixedSum).toFixed(2)],
+    [L.drift, c.delta.toFixed(2)],
+    [L.projected, c.P.toFixed(2)],
+    [L.dailyBase, c.dailyBase.toFixed(2)],
+    [L.entryCount, monthEntries.length],
+    [L.regret, regret.toFixed(2)],
+    [L.regretPct, monthEntries.length ? (regret / Math.max(1, monthEntries.reduce(function(a,x){return a+x.amount;},0)) * 100).toFixed(1) + '%' : '0%'],
+    [L.goodSum, good.toFixed(2)],
     [],
-    ['花在哪','合计']
+    [L.byPlace, L.total]
   ];
   places.forEach(function(p){ rows.push([p, byPlace[p].toFixed(2)]); });
   return csvRows(rows);

@@ -1,6 +1,6 @@
 // sw.js —— 网络优先，断网回落到缓存。改了版本号才会重建缓存。
-const CACHE = 'save-money-v1';
-const ASSETS = ['./', './index.html', './styles.css', './app.js', './core.js', './manifest.json', './icon.svg'];
+const CACHE = 'save-money-v2';
+const ASSETS = ['./', './index.html', './styles.css', './app.js', './core.js', './i18n.js', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', function(e){
   e.waitUntil(caches.open(CACHE).then(function(c){ return c.addAll(ASSETS); }).then(function(){ return self.skipWaiting(); }));
